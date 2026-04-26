@@ -1015,13 +1015,31 @@
   .writing-card:hover { border-color:rgba(99,102,241,0.4); transform:translateY(-4px); box-shadow:0 24px 60px rgba(0,0,0,0.4),0 0 40px rgba(99,102,241,0.1); }
 
   /* ── Writing + Skills: Mobile ── */
+  .skills-scroll-wrap { position:relative; }
+  .skills-scroll-fade {
+    display:none;
+    position:absolute; top:0; right:0; width:72px; height:calc(100% - 14px);
+    background:linear-gradient(to right, transparent, var(--bg));
+    pointer-events:none; z-index:2; border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+    transition:opacity 0.4s ease;
+  }
+  .skills-swipe-hint {
+    display:none; align-items:center; gap:6px;
+    font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);
+    letter-spacing:0.05em; margin-top:10px; justify-content:flex-end;
+    opacity:1; transition:opacity 0.5s ease;
+  }
+  .skills-swipe-hint svg { animation: hint-bounce 1.2s ease-in-out infinite; }
+  @keyframes hint-bounce { 0%,100%{transform:translateX(0);} 50%{transform:translateX(5px);} }
   @media (max-width: 768px) {
     .writing-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-    .strategy-grid { display:flex !important; flex-direction:row !important; overflow-x:auto !important; gap:12px !important; margin:20px 0 !important; padding-bottom:10px !important; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
-    .strategy-grid::-webkit-scrollbar { height:4px; }
+    .skills-scroll-fade { display:block; }
+    .skills-swipe-hint { display:flex; }
+    .strategy-grid { display:flex !important; flex-direction:row !important; overflow-x:auto !important; gap:12px !important; margin:20px 0 4px !important; padding-bottom:10px !important; padding-right:16px !important; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
+    .strategy-grid::-webkit-scrollbar { height:3px; }
     .strategy-grid::-webkit-scrollbar-track { background:transparent; }
-    .strategy-grid::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.4); border-radius:4px; }
-    .strategy-card { min-width:220px !important; max-width:220px !important; flex-shrink:0 !important; scroll-snap-align:start; padding:16px 14px !important; }
+    .strategy-grid::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.5); border-radius:4px; }
+    .strategy-card { min-width:200px !important; max-width:200px !important; flex-shrink:0 !important; scroll-snap-align:start; padding:16px 14px !important; }
     .strategy-card-icon { width:36px !important; height:36px !important; font-size:1rem !important; margin-bottom:10px !important; }
     .strategy-card h4 { font-size:0.82rem !important; margin-bottom:8px !important; }
     .strategy-card ul li { font-size:0.74rem !important; }
@@ -1029,7 +1047,7 @@
   }
   @media (max-width: 480px) {
     .writing-grid { gap: 12px !important; }
-    .strategy-card { min-width:200px !important; max-width:200px !important; }
+    .strategy-card { min-width:185px !important; max-width:185px !important; }
   }
 
   /* ═══════════════ TESTIMONIALS ═══════════════ */
@@ -1669,7 +1687,9 @@
   <div class="container">
     <p class="section-label reveal">Competencies</p>
     <h2 class="section-title reveal reveal-delay-1">Skills &amp; <em class="gradient-text">Expertise</em></h2>
-    <div class="strategy-grid reveal reveal-delay-2" style="margin-top:48px;">
+    <div class="skills-scroll-wrap reveal reveal-delay-2" style="margin-top:48px;">
+      <div class="skills-scroll-fade" id="skills-fade"></div>
+    <div class="strategy-grid" id="skills-grid">
 
       <div class="strategy-card">
         <div class="strategy-card-icon">🧠</div>
@@ -1753,6 +1773,11 @@
         </ul>
       </div>
 
+    </div>
+      <div class="skills-swipe-hint" id="skills-hint">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        Swipe to see more
+      </div>
     </div>
   </div>
 </section>
@@ -2069,6 +2094,23 @@
       alert('Network error. Please try again or email directly.');
     });
   }
+
+  /* Skills scroll cue */
+  (function(){
+    var grid = document.getElementById('skills-grid');
+    var fade = document.getElementById('skills-fade');
+    var hint = document.getElementById('skills-hint');
+    if (!grid) return;
+    grid.addEventListener('scroll', function(){
+      if (grid.scrollLeft > 20) {
+        if (fade) { fade.style.opacity = '0'; }
+        if (hint) { hint.style.opacity = '0'; }
+      } else {
+        if (fade) { fade.style.opacity = '1'; }
+        if (hint) { hint.style.opacity = '1'; }
+      }
+    }, { passive: true });
+  })();
 
   /* Project card tilt */
   document.querySelectorAll('.project-card').forEach(card=>{
