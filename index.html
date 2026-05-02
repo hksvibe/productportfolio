@@ -2220,5 +2220,120 @@
   };
 
 </script>
+
+<!-- ═══════════════ AMBIENT MUSIC PLAYER ═══════════════ -->
+<audio id="bg-audio" src="bg-music.mp3" loop preload="auto"></audio>
+
+<div id="music-player" style="
+  position:fixed;
+  bottom:24px;
+  right:24px;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:rgba(15,15,25,0.85);
+  border:1px solid rgba(99,102,241,0.35);
+  border-radius:50px;
+  padding:10px 18px 10px 14px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  box-shadow:0 4px 24px rgba(0,0,0,0.45);
+  cursor:pointer;
+  transition:opacity 0.3s, border-color 0.3s;
+  user-select:none;
+" title="Toggle ambient music">
+
+  <!-- animated bars icon (shows when playing) -->
+  <div id="music-bars" style="display:flex;align-items:flex-end;gap:2.5px;height:18px;">
+    <span style="width:3px;background:#6366f1;border-radius:2px;animation:bar1 0.9s ease-in-out infinite;"></span>
+    <span style="width:3px;background:#a855f7;border-radius:2px;animation:bar2 0.9s ease-in-out infinite 0.15s;"></span>
+    <span style="width:3px;background:#6366f1;border-radius:2px;animation:bar3 0.9s ease-in-out infinite 0.3s;"></span>
+    <span style="width:3px;background:#a855f7;border-radius:2px;animation:bar1 0.9s ease-in-out infinite 0.45s;"></span>
+  </div>
+
+  <!-- label -->
+  <span id="music-label" style="font-size:0.72rem;font-weight:600;color:rgba(199,210,254,0.9);font-family:'Inter',sans-serif;letter-spacing:0.03em;white-space:nowrap;">Ambient</span>
+
+  <!-- pause/play toggle icon -->
+  <div id="music-toggle-icon" style="width:18px;height:18px;display:flex;align-items:center;justify-content:center;opacity:0.7;">
+    <!-- pause icon (default — shown when playing) -->
+    <svg id="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:#c7d2fe;"><rect x="5" y="3" width="4" height="18" rx="1"/><rect x="15" y="3" width="4" height="18" rx="1"/></svg>
+    <!-- play icon (shown when paused) -->
+    <svg id="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:#c7d2fe;display:none;"><polygon points="5,3 19,12 5,21"/></svg>
+  </div>
+</div>
+
+<style>
+  @keyframes bar1 { 0%,100%{height:6px} 50%{height:16px} }
+  @keyframes bar2 { 0%,100%{height:10px} 50%{height:4px} }
+  @keyframes bar3 { 0%,100%{height:14px} 50%{height:8px} }
+  #music-player:hover { border-color:rgba(99,102,241,0.7); }
+  #music-player.paused #music-bars span { animation-play-state:paused; }
+</style>
+
+<script>
+(function(){
+  var audio   = document.getElementById('bg-audio');
+  var player  = document.getElementById('music-player');
+  var bars    = document.getElementById('music-bars');
+  var label   = document.getElementById('music-label');
+  var iconPause = document.getElementById('icon-pause');
+  var iconPlay  = document.getElementById('icon-play');
+  var playing = false;
+
+  function setPlaying(state) {
+    playing = state;
+    if (state) {
+      player.classList.remove('paused');
+      iconPause.style.display = '';
+      iconPlay.style.display  = 'none';
+      label.textContent = 'Ambient';
+    } else {
+      player.classList.add('paused');
+      iconPause.style.display = 'none';
+      iconPlay.style.display  = '';
+      label.textContent = 'Play';
+    }
+  }
+
+  // Try autoplay
+  audio.volume = 0.35;
+  var playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise.then(function() {
+      setPlaying(true);
+    }).catch(function() {
+      // Autoplay blocked — show play state
+      setPlaying(false);
+    });
+  }
+
+  // Toggle on click
+  player.addEventListener('click', function() {
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+    } else {
+      audio.play();
+      setPlaying(true);
+    }
+  });
+
+  // Also trigger on first user interaction anywhere on the page if autoplay was blocked
+  function tryAutoplay() {
+    if (!playing) {
+      audio.play().then(function(){ setPlaying(true); }).catch(function(){});
+    }
+    document.removeEventListener('click', tryAutoplay);
+    document.removeEventListener('keydown', tryAutoplay);
+    document.removeEventListener('touchstart', tryAutoplay);
+  }
+  document.addEventListener('click', tryAutoplay);
+  document.addEventListener('keydown', tryAutoplay);
+  document.addEventListener('touchstart', tryAutoplay);
+})();
+</script>
+
 </body>
 </html>
