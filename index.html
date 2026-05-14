@@ -1531,12 +1531,10 @@
     <div class="writing-carousel-track" id="writing-track" style="
       display:flex;
       gap:24px;
-      padding:8px 60px 20px;
-      overflow-x:auto;
-      scroll-snap-type:x mandatory;
-      -webkit-overflow-scrolling:touch;
-      scrollbar-width:none;
-      cursor:grab;
+      padding:8px 0 20px;
+      width:max-content;
+      animation:writingScroll 40s linear infinite;
+      will-change:transform;
     ">
 
       <!-- ── Article 1: Logistic Regression ── -->
@@ -1836,60 +1834,23 @@
 </section>
 
 <style>
+  @keyframes writingScroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+  .wcard { flex-shrink:0; }
   .wcard:hover { border-color:rgba(99,102,241,0.45); transform:translateY(-3px); box-shadow:0 16px 40px rgba(0,0,0,0.35),0 0 30px rgba(99,102,241,0.08); }
-  #writing-track::-webkit-scrollbar { display:none; }
-  #writing-track.is-dragging { cursor:grabbing; user-select:none; }
+  .writing-carousel-outer:hover #writing-track { animation-play-state:paused; }
 </style>
 
 <script>
 (function(){
   var track = document.getElementById('writing-track');
   if (!track) return;
-
-  /* ── drag to scroll ── */
-  var isDown = false, startX, scrollLeft;
-  track.addEventListener('mousedown', function(e){
-    isDown = true; track.classList.add('is-dragging');
-    startX = e.pageX - track.offsetLeft; scrollLeft = track.scrollLeft;
-  });
-  track.addEventListener('mouseleave', function(){ isDown = false; track.classList.remove('is-dragging'); });
-  track.addEventListener('mouseup',    function(){ isDown = false; track.classList.remove('is-dragging'); });
-  track.addEventListener('mousemove',  function(e){
-    if (!isDown) return; e.preventDefault();
-    var x = e.pageX - track.offsetLeft;
-    track.scrollLeft = scrollLeft - (x - startX) * 1.2;
-  });
-
-  /* ── prevent link clicks when dragging ── */
-  track.addEventListener('click', function(e){
-    if (track.classList.contains('is-dragging')) e.preventDefault();
-  }, true);
-
-  /* ── auto-scroll (slow, pauses on hover/touch) ── */
-  var autoSpeed = 0.6; // px per frame
-  var paused = false;
-  var raf;
-
-  function autoScroll() {
-    if (!paused) {
-      track.scrollLeft += autoSpeed;
-      /* loop: when we reach ~half way, snap back */
-      var half = track.scrollWidth / 2;
-      if (track.scrollLeft >= half) { track.scrollLeft -= half; }
-    }
-    raf = requestAnimationFrame(autoScroll);
-  }
-
-  /* duplicate cards for seamless loop */
-  var cards = track.querySelectorAll('.wcard');
+  /* duplicate all cards so the loop is seamless (-50% = back to start) */
+  var cards = Array.from(track.querySelectorAll('.wcard'));
   cards.forEach(function(c){ track.appendChild(c.cloneNode(true)); });
-
-  track.addEventListener('mouseenter',  function(){ paused = true; });
-  track.addEventListener('mouseleave',  function(){ paused = false; });
-  track.addEventListener('touchstart',  function(){ paused = true;  }, {passive:true});
-  track.addEventListener('touchend',    function(){ paused = false; }, {passive:true});
-
-  raf = requestAnimationFrame(autoScroll);
+  /* pause on touch */
+  var outer = track.parentElement;
+  outer.addEventListener('touchstart', function(){ track.style.animationPlayState='paused'; }, {passive:true});
+  outer.addEventListener('touchend',   function(){ track.style.animationPlayState='running'; }, {passive:true});
 })();
 </script>
 
